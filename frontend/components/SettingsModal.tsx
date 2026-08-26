@@ -11,7 +11,7 @@ interface SettingsModalProps {
 }
 
 const DEFAULT_MODELS: Record<AIProvider, string> = {
-  [AIProvider.VERTEX]: 'gemini-2.5-flash',
+  [AIProvider.VERTEX]: 'gemini-3.7-flash',
   [AIProvider.GEMINI]: 'gemini-2.5-flash',
   [AIProvider.OPENAI]: 'gpt-4o',
   [AIProvider.DEEPSEEK]: 'deepseek-chat',
@@ -19,6 +19,19 @@ const DEFAULT_MODELS: Record<AIProvider, string> = {
   [AIProvider.ANTHROPIC]: 'claude-3-5-sonnet-20241022',
   [AIProvider.CUSTOM]: 'gpt-3.5-turbo'
 };
+
+const VERTEX_MODELS = [
+  { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash（最新推荐 · 复杂推理 / 多模态 / Agent）' },
+  { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash（稳定高速）' },
+  { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash（质量 / 成本均衡）' },
+  { value: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro Preview（高阶复杂推理）' },
+  { value: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite（低成本快速）' },
+  { value: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash-Lite（轻量兼容）' },
+  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro（旧版高质量兼容）' },
+  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash（旧项目兼容）' },
+] as const;
+
+const CUSTOM_MODEL_VALUE = '__custom__';
 
 const DEFAULT_URLS: Record<AIProvider, string> = {
   [AIProvider.VERTEX]: '',
@@ -78,10 +91,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
 
   const needsApiKey = localSettings.provider !== AIProvider.VERTEX;
   const needsBaseUrl = [AIProvider.OPENAI, AIProvider.DEEPSEEK, AIProvider.OPENROUTER, AIProvider.CUSTOM].includes(localSettings.provider);
+  const isVertex = localSettings.provider === AIProvider.VERTEX;
+  const isKnownVertexModel = VERTEX_MODELS.some(model => model.value === localSettings.model);
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -97,11 +112,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
           
           {/* Provider Selection */}
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700">Provider</label>
+            <label className="text-sm font-bold text-slate-500 uppercase tracking-wide">Provider</label>
             <select 
               value={localSettings.provider}
               onChange={handleProviderChange}
-              className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-base shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
             >
               <option value={AIProvider.VERTEX}>Google Vertex AI (ADC)</option>
               <option value={AIProvider.GEMINI}>Google Gemini API</option>
@@ -113,20 +128,65 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
             </select>
           </div>
 
-          {/* Model Selection */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700 flex justify-between">
-              Model ID
-              <span className="text-xs font-normal text-slate-400">Customizable</span>
-            </label>
-            <input 
-              type="text"
-              value={localSettings.model}
-              onChange={(e) => setLocalSettings({...localSettings, model: e.target.value})}
-              placeholder="e.g., gemini-2.5-flash"
-              className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono"
-            />
-          </div>
+          {isVertex ? (
+            <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-xl space-y-4">
+              <p className="text-sm leading-relaxed text-blue-700">
+                Google Vertex AI 使用后端 ADC 认证。Project ID 与 Location 已由后端
+                <code className="mx-1 px-1.5 py-0.5 rounded bg-blue-100 font-mono text-xs">.env.local</code>
+                统一管理。
+              </p>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 flex flex-wrap justify-between gap-2">
+                  <span>Model（选择或自定义模型）</span>
+                  <span className="text-xs font-normal text-primary-600">
+                    当前生效：<code className="font-mono">{localSettings.model || '未设置'}</code>
+                  </span>
+                </label>
+                <select
+                  value={isKnownVertexModel ? localSettings.model : CUSTOM_MODEL_VALUE}
+                  onChange={(event) => {
+                    if (event.target.value === CUSTOM_MODEL_VALUE) {
+                      if (isKnownVertexModel) setLocalSettings({ ...localSettings, model: '' });
+                      return;
+                    }
+                    setLocalSettings({ ...localSettings, model: event.target.value });
+                  }}
+                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-base shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                >
+                  {VERTEX_MODELS.map(model => (
+                    <option key={model.value} value={model.value}>{model.label}</option>
+                  ))}
+                  <option value={CUSTOM_MODEL_VALUE}>自定义模型 ID（手动输入）…</option>
+                </select>
+
+                {!isKnownVertexModel && (
+                  <input
+                    type="text"
+                    value={localSettings.model}
+                    onChange={(event) => setLocalSettings({ ...localSettings, model: event.target.value })}
+                    placeholder="输入 Vertex AI 模型 ID"
+                    autoFocus
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-mono shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  />
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-slate-700 flex justify-between">
+                Model ID
+                <span className="text-xs font-normal text-slate-400">Customizable</span>
+              </label>
+              <input
+                type="text"
+                value={localSettings.model}
+                onChange={(e) => setLocalSettings({...localSettings, model: e.target.value})}
+                placeholder="Enter a model ID"
+                className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono"
+              />
+            </div>
+          )}
 
           {/* Base URL */}
           {needsBaseUrl && (
@@ -175,17 +235,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                 Keys are stored locally in your browser and sent securely to the local backend.
               </p>
             </div>
-          ) : (
-            <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium flex items-start gap-2">
-                <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                Vertex AI uses Application Default Credentials (ADC).
-              </p>
-              <p className="text-xs text-blue-600 mt-1 ml-6">
-                Ensure you have run <code>gcloud auth application-default login</code> and set <code>GOOGLE_CLOUD_PROJECT</code> in the backend environment.
-              </p>
-            </div>
-          )}
+          ) : null}
 
           {/* Test Connection Result */}
           {testStatus !== 'idle' && (

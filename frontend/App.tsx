@@ -16,7 +16,7 @@ const DEFAULT_SETTINGS: ProviderSettings = {
 };
 
 const DEFAULT_LEFT_PANE_PERCENT = 40;
-const MIN_LEFT_PANE_PERCENT = 28;
+const MIN_LEFT_PANE_PERCENT = 10;
 const MAX_LEFT_PANE_PERCENT = 62;
 
 const App: React.FC = () => {

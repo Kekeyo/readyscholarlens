@@ -11,8 +11,8 @@ interface SettingsModalProps {
 }
 
 const DEFAULT_MODELS: Record<AIProvider, string> = {
-  [AIProvider.VERTEX]: 'gemini-3.7-flash',
-  [AIProvider.GEMINI]: 'gemini-2.5-flash',
+  [AIProvider.VERTEX]: 'gemini-3.8-flash',
+  [AIProvider.GEMINI]: 'gemini-3.8-flash',
   [AIProvider.OPENAI]: 'gpt-4o',
   [AIProvider.DEEPSEEK]: 'deepseek-chat',
   [AIProvider.OPENROUTER]: 'anthropic/claude-3.5-sonnet',
@@ -21,8 +21,9 @@ const DEFAULT_MODELS: Record<AIProvider, string> = {
 };
 
 const VERTEX_MODELS = [
-  { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash（最新推荐 · 复杂推理 / 多模态 / Agent）' },
-  { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash（稳定高速）' },
+  { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash（最新推荐 · 复杂推理 / 多模态 / Agent）' },
+  { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash（稳定高速）' },
+  { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash（质量 / 速度均衡）' },
   { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash（质量 / 成本均衡）' },
   { value: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro Preview（高阶复杂推理）' },
   { value: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite（低成本快速）' },

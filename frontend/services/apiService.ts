@@ -119,7 +119,7 @@ export const analyzePaperStream = async (
       if (!settings.apiKey) throw new Error("API Key is required for Gemini.");
       const ai = new GoogleGenAI({ apiKey: settings.apiKey });
       const responseStream = await ai.models.generateContentStream({
-        model: settings.model || 'gemini-2.5-flash',
+        model: settings.model || 'gemini-3.8-flash',
         contents: { role: 'user', parts: formatForGemini(files, manualText) },
         config: { systemInstruction, temperature: 0.5 },
       });
@@ -341,7 +341,7 @@ export const testProviderConnection = async (settings: ProviderSettings): Promis
     if (settings.provider === AIProvider.GEMINI) {
       if (!settings.apiKey) throw new Error("API Key is required.");
       const ai = new GoogleGenAI({ apiKey: settings.apiKey });
-      await ai.models.generateContent({ model: settings.model || 'gemini-2.5-flash', contents: 'Hi', config: { maxOutputTokens: 5 } });
+      await ai.models.generateContent({ model: settings.model || 'gemini-3.8-flash', contents: 'Hi', config: { maxOutputTokens: 5 } });
       return { success: true, message: 'Connected to Gemini API successfully.' };
     }
 

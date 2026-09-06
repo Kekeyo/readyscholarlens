@@ -10,7 +10,7 @@ import { Play } from 'lucide-react';
 
 const DEFAULT_SETTINGS: ProviderSettings = {
   provider: AIProvider.VERTEX,
-  model: 'gemini-3.7-flash',
+  model: 'gemini-3.8-flash',
   apiKey: '',
   baseUrl: ''
 };

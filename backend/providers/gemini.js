@@ -12,7 +12,7 @@ export async function chat(req, res, { model, messages, config, credentials, str
 
   try {
     const responseStream = await ai.models.generateContentStream({
-      model: model || 'gemini-2.5-flash',
+      model: model || 'gemini-3.8-flash',
       contents: formattedContents.contents,
       config: {
         systemInstruction: formattedContents.systemInstruction,
@@ -39,7 +39,7 @@ export async function testConnection({ model, credentials }) {
   try {
     const ai = new GoogleGenAI({ apiKey: apiKey });
     await ai.models.generateContent({
-      model: model || 'gemini-2.5-flash',
+      model: model || 'gemini-3.8-flash',
       contents: 'Hi',
       config: { maxOutputTokens: 5 }
     });

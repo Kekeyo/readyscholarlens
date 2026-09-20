@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Loader2, AlertCircle, CheckCircle2, Download, FileText, FileCode, Printer, ChevronDown, Edit3, Save, X } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, Copy, Download, FileText, FileCode, Printer, ChevronDown, Edit3, Save, X } from 'lucide-react';
 import { useLanguage } from '../i18n.tsx';
 
 // Declare globals loaded via <script> tags in index.html
@@ -19,8 +19,10 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState('');
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const menuRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const copyStatusTimerRef = useRef<number | null>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -31,6 +33,12 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => () => {
+    if (copyStatusTimerRef.current !== null) {
+      window.clearTimeout(copyStatusTimerRef.current);
+    }
   }, []);
 
   const handleEditClick = () => {
@@ -45,6 +53,33 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+  };
+
+  const handleCopy = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(result);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = result;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copied = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (!copied) throw new Error('Clipboard copy failed');
+      }
+      setCopyStatus('success');
+    } catch (err) {
+      console.error('Copy failed', err);
+      setCopyStatus('error');
+    }
+
+    if (copyStatusTimerRef.current !== null) {
+      window.clearTimeout(copyStatusTimerRef.current);
+    }
+    copyStatusTimerRef.current = window.setTimeout(() => setCopyStatus('idle'), 2000);
   };
 
   const downloadFile = (content: string, filename: string, mimeType: string) => {
@@ -217,6 +252,17 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
             >
               <Edit3 size={16} />
               {t('edit')}
+            </button>
+          )}
+
+          {result && !isAnalyzing && !isEditing && (
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm"
+              aria-live="polite"
+            >
+              {copyStatus === 'success' ? <CheckCircle2 size={16} className="text-emerald-600" /> : <Copy size={16} />}
+              {copyStatus === 'success' ? t('copied') : copyStatus === 'error' ? t('copyFailed') : t('copy')}
             </button>
           )}
 

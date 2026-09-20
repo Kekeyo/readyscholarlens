@@ -7,7 +7,7 @@ const messages = {
     subtitle: 'AI 驱动的学术论文分析', localClient: '本地 BYOK 客户端', language: '界面语言', settings: 'AI 服务设置',
     selectMode: '选择分析模式', authorMode: '同老师类型', directionMode: '同方向论文', singlePaperMode: '单篇论文深度精读',
     authorDescription: '提取作者独特的写作风格、研究方法与学术特征。', directionDescription: '分析该领域的核心问题、主要贡献与未来趋势。', singlePaperDescription: '技术拆解与批判性精读：公式、机制、证据链、边界与后续改进。',
-    analysisDetail: '分析深度', simpleAnalysis: '简易', fullAnalysis: '完整', simpleAnalysisHint: '快速提炼核心结论，适合先建立整体判断。', fullAnalysisHint: '完整保留当前的深度分析框架、公式与证据链。',
+    analysisDetail: '分析深度', simpleAnalysis: '简易', fullAnalysis: '完整', simpleAnalysisHint: '提炼核心结论，建立整体判断。', fullAnalysisHint: '保留深度分析，公式与证据链。',
     documents: '文档', clearAll: '全部清除', clearConfirm: '确定要移除全部已上传文件吗？', addFiles: '添加文件', addFolder: '添加文件夹',
     processingFiles: '正在处理文件…', dragFiles: '将多个文件拖放到这里', fileSupport: '支持不限数量的 PDF 和 Markdown 文件',
     pdfWarning: '提示：Vertex AI、Gemini 和 Anthropic 完整支持直接分析 PDF。其他服务（如 OpenAI/DeepSeek）可能忽略 PDF 内容，建议使用 Markdown 以获得最佳兼容性。',

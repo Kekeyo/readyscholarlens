@@ -133,10 +133,10 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
   const hasPdf = files.some(f => f.type === 'pdf');
 
   return (
-    <div className="flex flex-col h-full flex-1 gap-4">
+    <div className="flex flex-col h-full flex-1 min-h-0 gap-3">
       {/* File Upload Section */}
-      <div className="flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex-1 max-h-[50vh]">
-        <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0">
+      <div className="flex flex-col min-h-0 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex-1">
+        <div className="bg-slate-50 border-b border-slate-200 px-4 py-2.5 flex items-center justify-between shrink-0">
           <label className="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
             {t('documents')}
             <span className="bg-primary-100 text-primary-700 py-0.5 px-2 rounded-full text-xs font-bold">
@@ -209,8 +209,8 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
               </div>
             </div>
           ) : files.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 opacity-80 pointer-events-none">
-              <Inbox size={48} className="mb-3 text-slate-300" />
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 py-6 opacity-80 pointer-events-none">
+              <Inbox size={40} className="mb-2 text-slate-300" />
               <p className="text-base font-medium text-slate-600">{t('dragFiles')}</p>
               <p className="text-sm mt-1">{t('fileSupport')}</p>
             </div>

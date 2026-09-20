@@ -1,8 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
-import { AnalysisMode, PaperFile, ProviderSettings, AIProvider } from '../types.ts';
+import { AnalysisDepth, AnalysisMode, PaperFile, ProviderSettings, AIProvider } from '../types.ts';
 import { AUTHOR_ANALYSIS_PROMPT } from '../prompts.ts';
 
-const getSystemInstruction = (mode: AnalysisMode): string => {
+const getSystemInstruction = (mode: AnalysisMode, depth: AnalysisDepth): string => {
   const baseInstruction = `
 【格式与语言要求】：
 1. 使用清晰的 Markdown 标题、表格和必要的结构图。
@@ -14,6 +14,58 @@ const getSystemInstruction = (mode: AnalysisMode): string => {
 7. 如果样本数量、论文编号、作者信息或年份存在不一致，应主动指出，不得自行补全。
 8. 重要结论尽量注明对应论文编号，例如“Doc 12、Doc 16、Doc 30”。技术细节必须服务于整体分析，不影响研究画像判断的公式、模块和实验参数可以省略。
 `;
+
+  if (depth === AnalysisDepth.SIMPLE) {
+    const simpleInstructionByMode: Record<AnalysisMode, string> = {
+      [AnalysisMode.AUTHOR]: `你是一位严谨的学术研究分析者。用户提供了一个导师、课题组或作者相关的论文集合。请生成一份【简易课题组学术画像】，目标是让读者在较短时间内掌握其研究重点，而不是逐篇展开深读。
+
+请严格依据输入材料，使用以下五个部分：
+### 1. 一句话画像
+用 1–2 句概括主要研究领域、核心问题与总体方法风格；证据不足时明确说明。
+### 2. 研究方向地图
+用表格归纳 3–5 个实际出现的研究分支，列出每个分支的核心问题、代表论文与相互关系。不要把关键词机械并列为方向。
+### 3. 时间与重心变化
+按年份简要说明研究重心的延续或变化；只能把明确证据支持的关系称为“直接继承”，其余使用审慎表述。
+### 4. 代表成果
+选 2–3 篇最能说明研究主线的论文。每篇用“问题—方法—实验证据”三行说明，并以第一作者和年份标注。
+### 5. 当前判断与建议
+用短句列出当前研究重心、可能的边界，以及 2 个适合继续追踪的问题。
+
+篇幅保持精炼：优先使用表格和分点；不强制罗列公式、完整论文清单或复杂架构图。`,
+      [AnalysisMode.DIRECTION]: `你是一位严谨的领域研究分析者。用户提供了多篇同方向论文。请生成一份【简易研究方向综述】，帮助读者迅速把握该方向的核心问题、技术路线与近期趋势。
+
+请严格依据输入材料，使用以下五个部分：
+### 1. 方向概览
+概括研究对象、共同问题与实际应用背景。
+### 2. 技术路线对比
+使用表格归纳 3–5 条实际出现的技术路线：核心思路、代表论文、适用条件与主要局限。
+### 3. 演进脉络
+按时间说明方法如何变化；不要仅按年份推断直接继承关系。
+### 4. 代表论文
+选 2–3 篇代表作，以“问题—关键机制—证据”三行说明，并标注第一作者和年份。
+### 5. 结论与趋势
+用短句总结该方向当前共识、未解决问题和一个最值得继续观察的趋势。
+
+篇幅保持精炼：优先用表格和分点；仅在论文明确提供且有助于理解时使用公式。`,
+      [AnalysisMode.SINGLE_PAPER]: `你是一位严谨的学术论文评审专家。用户提供了一篇论文及补充说明。请生成一份【简易论文精读】，让读者快速理解论文解决的问题、核心机制、证据与边界。
+
+请严格依据论文材料，使用以下五个部分：
+### 1. 论文速览
+给出题目、第一作者与年份（材料提供时），以及一句话说明研究问题。
+### 2. 问题与动机
+用短句说明传统方法的具体不足和本文试图解决的矛盾。
+### 3. 方法机制
+以“输入 → 核心模块 → 输出”描述流程；只解释最关键的 1–3 个机制。若论文给出且确有必要，可保留一个核心公式并解释其物理或数学含义。
+### 4. 证据与结果
+用表格或分点列出数据集、基线、关键指标和作者明确报告的结果；缺失时写“材料未提供/无法确认”。
+### 5. 评价与启发
+分别列出主要贡献、一个关键局限和 1–2 个可执行的后续方向。
+
+篇幅保持精炼：不要逐章复述论文、不要虚构公式或实验细节。`,
+    };
+
+    return `${simpleInstructionByMode[mode]}\n${baseInstruction}`;
+  }
 
   if (mode === AnalysisMode.AUTHOR) {
     return AUTHOR_ANALYSIS_PROMPT;
@@ -102,7 +154,7 @@ ${baseInstruction}
 };
 
 // Helper to format content for Gemini
-const formatForGemini = (files: PaperFile[], manualText: string) => {
+const formatForGemini = (files: PaperFile[], manualText: string, depth: AnalysisDepth) => {
   const parts: any[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -116,12 +168,14 @@ const formatForGemini = (files: PaperFile[], manualText: string) => {
   if (manualText.trim()) {
     parts.push({ text: `\n--- Additional User Notes/Context ---\n${manualText}\n` });
   }
-  parts.push({ text: `请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。务必保证每个章节都有充足的论述，不要简略。` });
+  parts.push({ text: depth === AnalysisDepth.SIMPLE
+    ? `请根据系统提示词生成以上 ${files.length} 篇文献的简易分析。保持精炼，优先呈现核心判断、关键证据和不确定性。`
+    : `请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。务必保证每个章节都有充足的论述，不要简略。` });
   return parts;
 };
 
 // Helper to format content for OpenAI/DeepSeek (String format for maximum compatibility)
-const formatForOpenAI = (files: PaperFile[], manualText: string): string => {
+const formatForOpenAI = (files: PaperFile[], manualText: string, depth: AnalysisDepth): string => {
   let textContent = "";
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -134,7 +188,9 @@ const formatForOpenAI = (files: PaperFile[], manualText: string): string => {
   if (manualText.trim()) {
     textContent += `\n--- Additional User Notes/Context ---\n${manualText}\n`;
   }
-  textContent += `\n请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。务必保证每个章节都有充足的论述，不要简略。`;
+  textContent += depth === AnalysisDepth.SIMPLE
+    ? `\n请根据系统提示词生成以上 ${files.length} 篇文献的简易分析。保持精炼，优先呈现核心判断、关键证据和不确定性。`
+    : `\n请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。务必保证每个章节都有充足的论述，不要简略。`;
   return textContent;
 };
 
@@ -142,13 +198,14 @@ export const analyzePaperStream = async (
   files: PaperFile[],
   manualText: string,
   mode: AnalysisMode,
+  depth: AnalysisDepth,
   settings: ProviderSettings,
   onChunk: (text: string) => void,
   onError: (error: string) => void,
   onComplete: () => void
 ) => {
   try {
-    const systemInstruction = getSystemInstruction(mode);
+    const systemInstruction = getSystemInstruction(mode, depth);
 
     // ---------------------------------------------------------
     // 1. GEMINI API (Direct Browser Call)
@@ -158,7 +215,7 @@ export const analyzePaperStream = async (
       const ai = new GoogleGenAI({ apiKey: settings.apiKey });
       const responseStream = await ai.models.generateContentStream({
         model: settings.model || 'gemini-3.8-flash',
-        contents: { role: 'user', parts: formatForGemini(files, manualText) },
+        contents: { role: 'user', parts: formatForGemini(files, manualText, depth) },
         config: { systemInstruction, temperature: 0.5 },
       });
       for await (const chunk of responseStream) {
@@ -187,7 +244,7 @@ export const analyzePaperStream = async (
           model: settings.model,
           messages: [
             { role: 'system', content: systemInstruction },
-            { role: 'user', content: formatForOpenAI(files, manualText) }
+            { role: 'user', content: formatForOpenAI(files, manualText, depth) }
           ],
           stream: true,
           temperature: 0.5
@@ -243,7 +300,9 @@ export const analyzePaperStream = async (
         }
       }
       if (manualText.trim()) contentArray.push({ type: 'text', text: `\n--- Additional User Notes/Context ---\n${manualText}\n` });
-      contentArray.push({ type: 'text', text: `请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。` });
+      contentArray.push({ type: 'text', text: depth === AnalysisDepth.SIMPLE
+        ? `请根据系统提示词生成以上 ${files.length} 篇文献的简易分析。保持精炼，优先呈现核心判断、关键证据和不确定性。`
+        : `请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。` });
 
       try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -310,7 +369,7 @@ export const analyzePaperStream = async (
         model: settings.model,
         messages: [
           { role: 'system', content: systemInstruction },
-          { role: 'user', content: formatForOpenAI(files, manualText) } // Backend will reformat
+          { role: 'user', content: formatForOpenAI(files, manualText, depth) } // Backend will reformat
         ],
         config: { temperature: 0.5 },
         credentials: {}

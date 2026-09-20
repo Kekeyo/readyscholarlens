@@ -4,6 +4,11 @@ export enum AnalysisMode {
   SINGLE_PAPER = 'single_paper'
 }
 
+export enum AnalysisDepth {
+  SIMPLE = 'simple',
+  FULL = 'full'
+}
+
 export interface AnalysisState {
   isAnalyzing: boolean;
   result: string;

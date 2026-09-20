@@ -4,7 +4,7 @@ import ModeSelector from './components/ModeSelector.tsx';
 import DocumentInput from './components/DocumentInput.tsx';
 import ResultDisplay from './components/ResultDisplay.tsx';
 import SettingsModal from './components/SettingsModal.tsx';
-import { AnalysisMode, AnalysisState, PaperFile, AIProvider, ProviderSettings } from './types.ts';
+import { AnalysisDepth, AnalysisMode, AnalysisState, PaperFile, AIProvider, ProviderSettings } from './types.ts';
 import { analyzePaperStream } from './services/apiService.ts';
 import { Play } from 'lucide-react';
 import { useLanguage } from './i18n.tsx';
@@ -23,6 +23,7 @@ const MAX_LEFT_PANE_PERCENT = 62;
 const App: React.FC = () => {
   const { t } = useLanguage();
   const [mode, setMode] = useState<AnalysisMode>(AnalysisMode.AUTHOR);
+  const [analysisDepth, setAnalysisDepth] = useState<AnalysisDepth>(AnalysisDepth.FULL);
   const [files, setFiles] = useState<PaperFile[]>([]);
   const [manualText, setManualText] = useState<string>('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -76,6 +77,7 @@ const App: React.FC = () => {
       files,
       manualText,
       mode,
+      analysisDepth,
       settings,
       (chunk) => {
         setAnalysisState((prev) => ({
@@ -97,7 +99,7 @@ const App: React.FC = () => {
         }));
       }
     );
-  }, [files, manualText, mode, settings, t]);
+  }, [files, manualText, mode, analysisDepth, settings, t]);
 
   const isReadyToAnalyze = files.length > 0 || manualText.trim().length > 0;
 
@@ -171,6 +173,8 @@ const App: React.FC = () => {
               <ModeSelector 
                 currentMode={mode} 
                 onModeChange={setMode} 
+                currentDepth={analysisDepth}
+                onDepthChange={setAnalysisDepth}
                 disabled={analysisState.isAnalyzing} 
               />
             </div>

@@ -73,7 +73,7 @@ const getSystemInstruction = (mode: AnalysisMode, depth: AnalysisDepth): string 
 
   if (mode === AnalysisMode.SINGLE_PAPER) {
     return `你是一位严谨的学术论文评审专家。
-用户将提供一篇当前论文（PDF 或 Markdown）及补充说明。你的任务是完成“单篇论文深度精读”：对论文进行深度技术拆解与批判性精读，重点解释为什么这样设计、解决了什么问题、模块之间的逻辑闭环、方法的边界与改进空间。不要复述引言客套话与无意义的元信息（如作者单位、期刊投递状态等），直奔技术硬核。
+用户将提供一篇当前论文（PDF 或 Markdown）。你的任务是完成“单篇论文深度精读”：对论文进行深度技术拆解与批判性精读，重点解释为什么这样设计、解决了什么问题、模块之间的逻辑闭环、方法的边界与改进空间。不要复述引言客套话与无意义的元信息（如作者单位、期刊投递状态等），直奔技术硬核。
 ${baseInstruction}
 
 【任务边界】
@@ -154,7 +154,7 @@ ${baseInstruction}
 };
 
 // Helper to format content for Gemini
-const formatForGemini = (files: PaperFile[], manualText: string, depth: AnalysisDepth) => {
+const formatForGemini = (files: PaperFile[], depth: AnalysisDepth) => {
   const parts: any[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -165,9 +165,6 @@ const formatForGemini = (files: PaperFile[], manualText: string, depth: Analysis
       parts.push({ text: `\n--- Start of Document ${i + 1}: ${file.name} ---\n${file.content}\n--- End of Document ${i + 1} ---\n` });
     }
   }
-  if (manualText.trim()) {
-    parts.push({ text: `\n--- Additional User Notes/Context ---\n${manualText}\n` });
-  }
   parts.push({ text: depth === AnalysisDepth.SIMPLE
     ? `请根据系统提示词生成以上 ${files.length} 篇文献的简易分析。保持精炼，优先呈现核心判断、关键证据和不确定性。`
     : `请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。务必保证每个章节都有充足的论述，不要简略。` });
@@ -175,7 +172,7 @@ const formatForGemini = (files: PaperFile[], manualText: string, depth: Analysis
 };
 
 // Helper to format content for OpenAI/DeepSeek (String format for maximum compatibility)
-const formatForOpenAI = (files: PaperFile[], manualText: string, depth: AnalysisDepth): string => {
+const formatForOpenAI = (files: PaperFile[], depth: AnalysisDepth): string => {
   let textContent = "";
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -185,9 +182,6 @@ const formatForOpenAI = (files: PaperFile[], manualText: string, depth: Analysis
       textContent += `\n--- Start of Document ${i + 1}: ${file.name} ---\n${file.content}\n--- End of Document ${i + 1} ---\n`;
     }
   }
-  if (manualText.trim()) {
-    textContent += `\n--- Additional User Notes/Context ---\n${manualText}\n`;
-  }
   textContent += depth === AnalysisDepth.SIMPLE
     ? `\n请根据系统提示词生成以上 ${files.length} 篇文献的简易分析。保持精炼，优先呈现核心判断、关键证据和不确定性。`
     : `\n请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。务必保证每个章节都有充足的论述，不要简略。`;
@@ -196,7 +190,6 @@ const formatForOpenAI = (files: PaperFile[], manualText: string, depth: Analysis
 
 export const analyzePaperStream = async (
   files: PaperFile[],
-  manualText: string,
   mode: AnalysisMode,
   depth: AnalysisDepth,
   settings: ProviderSettings,
@@ -215,7 +208,7 @@ export const analyzePaperStream = async (
       const ai = new GoogleGenAI({ apiKey: settings.apiKey });
       const responseStream = await ai.models.generateContentStream({
         model: settings.model || 'gemini-3.8-flash',
-        contents: { role: 'user', parts: formatForGemini(files, manualText, depth) },
+        contents: { role: 'user', parts: formatForGemini(files, depth) },
         config: { systemInstruction, temperature: 0.5 },
       });
       for await (const chunk of responseStream) {
@@ -244,7 +237,7 @@ export const analyzePaperStream = async (
           model: settings.model,
           messages: [
             { role: 'system', content: systemInstruction },
-            { role: 'user', content: formatForOpenAI(files, manualText, depth) }
+            { role: 'user', content: formatForOpenAI(files, depth) }
           ],
           stream: true,
           temperature: 0.5
@@ -299,7 +292,6 @@ export const analyzePaperStream = async (
           contentArray.push({ type: 'text', text: `\n--- Start of Document ${i + 1}: ${file.name} ---\n${file.content}\n--- End of Document ${i + 1} ---\n` });
         }
       }
-      if (manualText.trim()) contentArray.push({ type: 'text', text: `\n--- Additional User Notes/Context ---\n${manualText}\n` });
       contentArray.push({ type: 'text', text: depth === AnalysisDepth.SIMPLE
         ? `请根据系统提示词生成以上 ${files.length} 篇文献的简易分析。保持精炼，优先呈现核心判断、关键证据和不确定性。`
         : `请根据系统提示词的要求，对以上 ${files.length} 篇文献进行极其详尽的深度分析。` });
@@ -369,7 +361,7 @@ export const analyzePaperStream = async (
         model: settings.model,
         messages: [
           { role: 'system', content: systemInstruction },
-          { role: 'user', content: formatForOpenAI(files, manualText, depth) } // Backend will reformat
+          { role: 'user', content: formatForOpenAI(files, depth) } // Backend will reformat
         ],
         config: { temperature: 0.5 },
         credentials: {}

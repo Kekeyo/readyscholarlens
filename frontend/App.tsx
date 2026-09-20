@@ -25,7 +25,6 @@ const App: React.FC = () => {
   const [mode, setMode] = useState<AnalysisMode>(AnalysisMode.AUTHOR);
   const [analysisDepth, setAnalysisDepth] = useState<AnalysisDepth>(AnalysisDepth.FULL);
   const [files, setFiles] = useState<PaperFile[]>([]);
-  const [manualText, setManualText] = useState<string>('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [leftPanePercent, setLeftPanePercent] = useState(DEFAULT_LEFT_PANE_PERCENT);
   const [isResizing, setIsResizing] = useState(false);
@@ -62,7 +61,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleAnalyze = useCallback(async () => {
-    if (files.length === 0 && !manualText.trim()) {
+    if (files.length === 0) {
       setAnalysisState(prev => ({ ...prev, error: t('needInput') }));
       return;
     }
@@ -75,7 +74,6 @@ const App: React.FC = () => {
 
     await analyzePaperStream(
       files,
-      manualText,
       mode,
       analysisDepth,
       settings,
@@ -99,9 +97,9 @@ const App: React.FC = () => {
         }));
       }
     );
-  }, [files, manualText, mode, analysisDepth, settings, t]);
+  }, [files, mode, analysisDepth, settings, t]);
 
-  const isReadyToAnalyze = files.length > 0 || manualText.trim().length > 0;
+  const isReadyToAnalyze = files.length > 0;
 
   const updatePaneWidth = useCallback((clientX: number) => {
     if (resizeFrameRef.current !== null) {
@@ -183,8 +181,6 @@ const App: React.FC = () => {
               <DocumentInput 
                 files={files}
                 onFilesChange={setFiles}
-                manualText={manualText}
-                onManualTextChange={setManualText}
                 disabled={analysisState.isAnalyzing}
               />
             </div>
@@ -195,7 +191,7 @@ const App: React.FC = () => {
               className="w-full py-4 px-6 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-600 disabled:hover:shadow-md shrink-0"
             >
               {analysisState.isAnalyzing ? (
-                <>{files.length > 0 ? t('analyzingDocuments', { count: files.length }) : t('analyzingText')}</>
+                <>{t('analyzingDocuments', { count: files.length })}</>
               ) : (
                 <>
                   <Play size={20} fill="currentColor" />

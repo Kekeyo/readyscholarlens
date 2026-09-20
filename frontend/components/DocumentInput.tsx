@@ -6,16 +6,12 @@ import { useLanguage } from '../i18n.tsx';
 interface DocumentInputProps {
   files: PaperFile[];
   onFilesChange: (files: PaperFile[]) => void;
-  manualText: string;
-  onManualTextChange: (text: string) => void;
   disabled?: boolean;
 }
 
 const DocumentInput: React.FC<DocumentInputProps> = ({ 
   files, 
   onFilesChange, 
-  manualText, 
-  onManualTextChange, 
   disabled = false 
 }) => {
   const { t } = useLanguage();
@@ -269,22 +265,6 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
         </div>
       </div>
 
-      {/* Manual Text Section */}
-      <div className="flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-all min-h-[120px] shrink-0">
-        <div className="bg-slate-50 border-b border-slate-200 px-4 py-2">
-          <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-            {t('notes')}
-          </label>
-        </div>
-        <textarea
-          value={manualText}
-          onChange={(e) => onManualTextChange(e.target.value)}
-          disabled={disabled}
-          placeholder={t('notesPlaceholder')}
-          className="flex-1 w-full p-3 bg-transparent resize-none outline-none text-slate-700 font-mono text-sm leading-relaxed disabled:bg-slate-50 disabled:text-slate-500"
-          spellCheck={false}
-        />
-      </div>
     </div>
   );
 };

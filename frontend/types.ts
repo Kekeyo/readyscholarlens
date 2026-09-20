@@ -1,6 +1,7 @@
 export enum AnalysisMode {
   AUTHOR = 'author',
-  DIRECTION = 'direction'
+  DIRECTION = 'direction',
+  SINGLE_PAPER = 'single_paper'
 }
 
 export interface AnalysisState {

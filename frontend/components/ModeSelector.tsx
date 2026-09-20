@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnalysisMode } from '../types.ts';
-import { User, Compass } from 'lucide-react';
+import { User, Compass, FileSearch } from 'lucide-react';
 import { useLanguage } from '../i18n.tsx';
 
 interface ModeSelectorProps {
@@ -16,7 +16,7 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({ currentMode, onModeChange, 
       <label className="text-sm font-semibold text-slate-700 uppercase tracking-wider">
         {t('selectMode')}
       </label>
-      <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+      <div className="grid grid-cols-1 sm:grid-cols-3 bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1">
         <button
           onClick={() => onModeChange(AnalysisMode.AUTHOR)}
           disabled={disabled}
@@ -41,11 +41,25 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({ currentMode, onModeChange, 
           <Compass size={18} />
           <span>{t('directionMode')}</span>
         </button>
+        <button
+          onClick={() => onModeChange(AnalysisMode.SINGLE_PAPER)}
+          disabled={disabled}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+            currentMode === AnalysisMode.SINGLE_PAPER
+              ? 'bg-white text-primary-700 shadow-sm border border-slate-200/50'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <FileSearch size={18} />
+          <span>{t('singlePaperMode')}</span>
+        </button>
       </div>
       <p className="text-xs text-slate-500 mt-1 ml-1">
-        {currentMode === AnalysisMode.AUTHOR 
+        {currentMode === AnalysisMode.AUTHOR
           ? t('authorDescription')
-          : t('directionDescription')}
+          : currentMode === AnalysisMode.DIRECTION
+            ? t('directionDescription')
+            : t('singlePaperDescription')}
       </p>
     </div>
   );

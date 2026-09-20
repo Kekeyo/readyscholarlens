@@ -14,10 +14,7 @@ interface ModeSelectorProps {
 const ModeSelector: React.FC<ModeSelectorProps> = ({ currentMode, onModeChange, currentDepth, onDepthChange, disabled = false }) => {
   const { t } = useLanguage();
   return (
-    <div className="flex flex-col gap-2 mb-6">
-      <label className="text-sm font-semibold text-slate-700 uppercase tracking-wider">
-        {t('selectMode')}
-      </label>
+    <div className="flex flex-col gap-2">
       <div className="grid grid-cols-1 sm:grid-cols-3 bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1">
         <button
           onClick={() => onModeChange(AnalysisMode.AUTHOR)}
@@ -63,10 +60,7 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({ currentMode, onModeChange, 
             ? t('directionDescription')
             : t('singlePaperDescription')}
       </p>
-      <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
-        <div className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-600">
-          {t('analysisDetail')}
-        </div>
+      <div className="mt-1 rounded-xl border border-slate-200 bg-slate-50 p-2">
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"

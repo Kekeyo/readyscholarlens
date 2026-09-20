@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Header from './components/Header.tsx';
+import ModeSelector from './components/ModeSelector.tsx';
 import DocumentInput from './components/DocumentInput.tsx';
 import ResultDisplay from './components/ResultDisplay.tsx';
 import SettingsModal from './components/SettingsModal.tsx';
@@ -18,11 +19,11 @@ const DEFAULT_SETTINGS: ProviderSettings = {
 const DEFAULT_LEFT_PANE_PERCENT = 40;
 const MIN_LEFT_PANE_PERCENT = 10;
 const MAX_LEFT_PANE_PERCENT = 62;
-const ANALYSIS_MODE = AnalysisMode.SINGLE_PAPER;
-const ANALYSIS_DEPTH = AnalysisDepth.FULL;
 
 const App: React.FC = () => {
   const { t } = useLanguage();
+  const [mode, setMode] = useState<AnalysisMode>(AnalysisMode.AUTHOR);
+  const [analysisDepth, setAnalysisDepth] = useState<AnalysisDepth>(AnalysisDepth.FULL);
   const [files, setFiles] = useState<PaperFile[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [leftPanePercent, setLeftPanePercent] = useState(DEFAULT_LEFT_PANE_PERCENT);
@@ -73,8 +74,8 @@ const App: React.FC = () => {
 
     await analyzePaperStream(
       files,
-      ANALYSIS_MODE,
-      ANALYSIS_DEPTH,
+      mode,
+      analysisDepth,
       settings,
       (chunk) => {
         setAnalysisState((prev) => ({
@@ -96,7 +97,7 @@ const App: React.FC = () => {
         }));
       }
     );
-  }, [files, settings, t]);
+  }, [files, mode, analysisDepth, settings, t]);
 
   const isReadyToAnalyze = files.length > 0;
 
@@ -164,9 +165,19 @@ const App: React.FC = () => {
           style={{ '--left-pane-width': `${leftPanePercent}%` } as React.CSSProperties}
         >
           
-          {/* Left Column: document upload and action */}
+          {/* Left Column: Input & Controls */}
           <div className="w-full md:basis-[var(--left-pane-width)] md:flex-none flex flex-col gap-3 md:h-full md:overflow-hidden md:pr-2 print:hidden min-h-0 will-change-[flex-basis]">
-            <div className="flex-1 flex flex-col min-h-[280px]">
+            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm shrink-0">
+              <ModeSelector 
+                currentMode={mode} 
+                onModeChange={setMode} 
+                currentDepth={analysisDepth}
+                onDepthChange={setAnalysisDepth}
+                disabled={analysisState.isAnalyzing} 
+              />
+            </div>
+            
+            <div className="flex-1 flex flex-col min-h-[260px]">
               <DocumentInput 
                 files={files}
                 onFilesChange={setFiles}

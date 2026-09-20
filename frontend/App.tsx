@@ -7,6 +7,7 @@ import SettingsModal from './components/SettingsModal.tsx';
 import { AnalysisMode, AnalysisState, PaperFile, AIProvider, ProviderSettings } from './types.ts';
 import { analyzePaperStream } from './services/apiService.ts';
 import { Play } from 'lucide-react';
+import { useLanguage } from './i18n.tsx';
 
 const DEFAULT_SETTINGS: ProviderSettings = {
   provider: AIProvider.VERTEX,
@@ -20,6 +21,7 @@ const MIN_LEFT_PANE_PERCENT = 10;
 const MAX_LEFT_PANE_PERCENT = 62;
 
 const App: React.FC = () => {
+  const { t } = useLanguage();
   const [mode, setMode] = useState<AnalysisMode>(AnalysisMode.AUTHOR);
   const [files, setFiles] = useState<PaperFile[]>([]);
   const [manualText, setManualText] = useState<string>('');
@@ -60,7 +62,7 @@ const App: React.FC = () => {
 
   const handleAnalyze = useCallback(async () => {
     if (files.length === 0 && !manualText.trim()) {
-      setAnalysisState(prev => ({ ...prev, error: "Please provide at least one document or some text to analyze." }));
+      setAnalysisState(prev => ({ ...prev, error: t('needInput') }));
       return;
     }
 
@@ -95,7 +97,7 @@ const App: React.FC = () => {
         }));
       }
     );
-  }, [files, manualText, mode, settings]);
+  }, [files, manualText, mode, settings, t]);
 
   const isReadyToAnalyze = files.length > 0 || manualText.trim().length > 0;
 
@@ -189,11 +191,11 @@ const App: React.FC = () => {
               className="w-full py-4 px-6 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-600 disabled:hover:shadow-md shrink-0"
             >
               {analysisState.isAnalyzing ? (
-                <>Analyzing {files.length > 0 ? `${files.length} Document(s)` : 'Text'}...</>
+                <>{files.length > 0 ? t('analyzingDocuments', { count: files.length }) : t('analyzingText')}</>
               ) : (
                 <>
                   <Play size={20} fill="currentColor" />
-                  Start Analysis
+                  {t('startAnalysis')}
                 </>
               )}
             </button>
@@ -202,13 +204,13 @@ const App: React.FC = () => {
           {/* Desktop resize handle. Its wide hit area keeps dragging easy while the visible rule stays subtle. */}
           <div
             role="separator"
-            aria-label="Resize input and results panels"
+            aria-label={t('resizePanels')}
             aria-orientation="vertical"
             aria-valuemin={MIN_LEFT_PANE_PERCENT}
             aria-valuemax={MAX_LEFT_PANE_PERCENT}
             aria-valuenow={Math.round(leftPanePercent)}
             tabIndex={0}
-            title="Drag to resize · Double-click to reset"
+            title={t('resizeHint')}
             onPointerDown={handleResizeStart}
             onPointerMove={handleResizeMove}
             onPointerUp={handleResizeEnd}

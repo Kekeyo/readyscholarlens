@@ -1,6 +1,7 @@
 import React from 'react';
 import { AnalysisMode } from '../types.ts';
 import { User, Compass } from 'lucide-react';
+import { useLanguage } from '../i18n.tsx';
 
 interface ModeSelectorProps {
   currentMode: AnalysisMode;
@@ -9,10 +10,11 @@ interface ModeSelectorProps {
 }
 
 const ModeSelector: React.FC<ModeSelectorProps> = ({ currentMode, onModeChange, disabled = false }) => {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col gap-2 mb-6">
       <label className="text-sm font-semibold text-slate-700 uppercase tracking-wider">
-        Select Analysis Mode
+        {t('selectMode')}
       </label>
       <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
         <button
@@ -25,7 +27,7 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({ currentMode, onModeChange, 
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <User size={18} />
-          <span>同老师类型 (Author Style)</span>
+          <span>{t('authorMode')}</span>
         </button>
         <button
           onClick={() => onModeChange(AnalysisMode.DIRECTION)}
@@ -37,13 +39,13 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({ currentMode, onModeChange, 
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <Compass size={18} />
-          <span>同方向论文 (Research Direction)</span>
+          <span>{t('directionMode')}</span>
         </button>
       </div>
       <p className="text-xs text-slate-500 mt-1 ml-1">
         {currentMode === AnalysisMode.AUTHOR 
-          ? "Extracts the author's unique writing style, methodologies, and academic signature."
-          : "Analyzes the core research problem, contributions, and future trends of the field."}
+          ? t('authorDescription')
+          : t('directionDescription')}
       </p>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { Upload, FolderUp, FileText, File as FileIcon, Trash2, X, Loader2, PlusCircle, Inbox, AlertTriangle } from 'lucide-react';
 import { PaperFile } from '../types.ts';
+import { useLanguage } from '../i18n.tsx';
 
 interface DocumentInputProps {
   files: PaperFile[];
@@ -17,6 +18,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
   onManualTextChange, 
   disabled = false 
 }) => {
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -88,7 +90,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
       }
     } catch (error) {
       console.error("Error processing files:", error);
-      alert("An error occurred while reading the files.");
+      alert(t('fileReadError'));
     } finally {
       setIsProcessing(false);
       setProgress({ current: 0, total: 0 });
@@ -127,7 +129,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
   };
 
   const clearAllFiles = () => {
-    if (window.confirm("Are you sure you want to remove all uploaded files?")) {
+    if (window.confirm(t('clearConfirm'))) {
       onFilesChange([]);
     }
   };
@@ -140,7 +142,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
       <div className="flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex-1 max-h-[50vh]">
         <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0">
           <label className="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-            Documents 
+            {t('documents')}
             <span className="bg-primary-100 text-primary-700 py-0.5 px-2 rounded-full text-xs font-bold">
               {files.length}
             </span>
@@ -151,9 +153,9 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
                 onClick={clearAllFiles}
                 disabled={disabled || isProcessing}
                 className="text-xs flex items-center gap-1 text-slate-500 hover:text-red-600 transition-colors px-2 py-1 rounded disabled:opacity-50"
-                title="Clear all files"
+                title={t('clearAll')}
               >
-                <Trash2 size={14} /> Clear All
+                <Trash2 size={14} /> {t('clearAll')}
               </button>
             )}
             <button
@@ -161,14 +163,14 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
               disabled={disabled || isProcessing}
               className="text-xs flex items-center gap-1 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-md transition-colors border border-slate-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
-              <Upload size={14} /> Add Files
+              <Upload size={14} /> {t('addFiles')}
             </button>
             <button
               onClick={() => folderInputRef.current?.click()}
               disabled={disabled || isProcessing}
               className="text-xs flex items-center gap-1 bg-primary-50 hover:bg-primary-100 text-primary-700 px-3 py-1.5 rounded-md transition-colors border border-primary-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
-              <FolderUp size={14} /> Add Folder
+              <FolderUp size={14} /> {t('addFolder')}
             </button>
             
             <input
@@ -201,7 +203,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
           {isProcessing ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-500 py-8">
               <Loader2 size={32} className="animate-spin mb-3 text-primary-500" />
-              <p className="text-sm font-medium">Processing files...</p>
+              <p className="text-sm font-medium">{t('processingFiles')}</p>
               <p className="text-xs mt-1 text-slate-400">{progress.current} / {progress.total}</p>
               <div className="w-48 h-1.5 bg-slate-200 rounded-full mt-3 overflow-hidden">
                 <div 
@@ -213,15 +215,15 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
           ) : files.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10 opacity-80 pointer-events-none">
               <Inbox size={48} className="mb-3 text-slate-300" />
-              <p className="text-base font-medium text-slate-600">Drag & drop multiple files here</p>
-              <p className="text-sm mt-1">Supports unlimited PDF and Markdown files</p>
+              <p className="text-base font-medium text-slate-600">{t('dragFiles')}</p>
+              <p className="text-sm mt-1">{t('fileSupport')}</p>
             </div>
           ) : (
             <div className="space-y-2">
               {hasPdf && (
                 <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs p-2 rounded-lg flex items-start gap-2 mb-2">
                   <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                  <p>Note: Direct PDF analysis is fully supported by Vertex AI, Gemini, and Anthropic. Other providers (like OpenAI/DeepSeek) may ignore PDF content. Use Markdown for best compatibility.</p>
+                  <p>{t('pdfWarning')}</p>
                 </div>
               )}
               <ul className="space-y-1.5">
@@ -246,7 +248,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
                       onClick={() => removeFile(file.id)}
                       disabled={disabled}
                       className="text-slate-400 hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-0 shrink-0"
-                      title="Remove file"
+                      title={t('removeFile')}
                     >
                       <X size={16} />
                     </button>
@@ -259,7 +261,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full py-3 mt-2 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all flex items-center justify-center gap-2 text-sm font-medium"
                 >
-                  <PlusCircle size={16} /> Add more files
+                  <PlusCircle size={16} /> {t('addMoreFiles')}
                 </button>
               )}
             </div>
@@ -271,14 +273,14 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
       <div className="flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-all min-h-[120px] shrink-0">
         <div className="bg-slate-50 border-b border-slate-200 px-4 py-2">
           <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-            Additional Notes / Manual Input (Optional)
+            {t('notes')}
           </label>
         </div>
         <textarea
           value={manualText}
           onChange={(e) => onManualTextChange(e.target.value)}
           disabled={disabled}
-          placeholder="Paste any additional markdown, text, or specific instructions here..."
+          placeholder={t('notesPlaceholder')}
           className="flex-1 w-full p-3 bg-transparent resize-none outline-none text-slate-700 font-mono text-sm leading-relaxed disabled:bg-slate-50 disabled:text-slate-500"
           spellCheck={false}
         />

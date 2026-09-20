@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Loader2, AlertCircle, CheckCircle2, Download, FileText, FileCode, Printer, ChevronDown, Edit3, Save, X } from 'lucide-react';
+import { useLanguage } from '../i18n.tsx';
 
 // Declare globals loaded via <script> tags in index.html
 declare const marked: any;
@@ -13,6 +14,7 @@ interface ResultDisplayProps {
 }
 
 const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, error, onResultChange }) => {
+  const { t } = useLanguage();
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -71,7 +73,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
     
     // @ts-ignore
     if (typeof window === 'undefined' || !window.html2pdf) {
-      alert("PDF generation library is still loading. Please try again in a moment.");
+      alert(t('pdfLibraryLoading'));
       return;
     }
 
@@ -102,20 +104,20 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
       }).catch((err: any) => {
         console.error("PDF generation failed", err);
         setIsGeneratingPDF(false);
-        alert("Failed to generate PDF.");
+        alert(t('pdfFailed'));
       });
       
     } catch (err) {
       console.error("PDF generation failed", err);
       setIsGeneratingPDF(false);
-      alert("Failed to generate PDF.");
+      alert(t('pdfFailed'));
     }
   };
 
   // 核心修复：预处理 Markdown，保护数学公式不被 marked 错误解析（如将公式内的下划线解析为斜体）
   const renderMarkdown = (text: string) => {
     if (typeof marked === 'undefined' || typeof katex === 'undefined') {
-      return { __html: '<p>Loading parser...</p>' };
+      return { __html: `<p>${t('parserLoading')}</p>` };
     }
 
     const mathBlocks: { type: 'block' | 'inline', math: string }[] = [];
@@ -169,7 +171,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-red-50 rounded-xl border border-red-100 print:hidden">
         <AlertCircle size={48} className="text-red-500 mb-4" />
-        <h3 className="text-lg font-semibold text-red-800 mb-2">Analysis Failed</h3>
+        <h3 className="text-lg font-semibold text-red-800 mb-2">{t('analysisFailed')}</h3>
         <p className="text-red-600 text-sm max-w-md">{error}</p>
       </div>
     );
@@ -181,9 +183,9 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
           <CheckCircle2 size={32} className="text-slate-300" />
         </div>
-        <h3 className="text-lg font-medium text-slate-600 mb-1">Ready for Analysis</h3>
+        <h3 className="text-lg font-medium text-slate-600 mb-1">{t('ready')}</h3>
         <p className="text-slate-400 text-sm max-w-sm">
-          Select a mode, input your markdown paper, and click analyze to see the insights here.
+          {t('readyHint')}
         </p>
       </div>
     );
@@ -193,15 +195,15 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
     <div className="flex-1 flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden print:border-none print:shadow-none print:overflow-visible print:h-auto">
       <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 rounded-t-xl print:hidden">
         <h2 className="font-semibold text-slate-700 flex items-center gap-2">
-          Analysis Results
+          {t('results')}
           {isAnalyzing && (
             <span className="flex items-center gap-1 text-xs font-normal text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
-              <Loader2 size={12} className="animate-spin" /> Generating...
+              <Loader2 size={12} className="animate-spin" /> {t('generating')}
             </span>
           )}
           {isEditing && (
             <span className="flex items-center gap-1 text-xs font-normal text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-              Editing Mode
+              {t('editingMode')}
             </span>
           )}
         </h2>
@@ -214,7 +216,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
               className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm"
             >
               <Edit3 size={16} />
-              Edit
+              {t('edit')}
             </button>
           )}
 
@@ -225,14 +227,14 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
                 className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm"
               >
                 <X size={16} />
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleSaveEdit}
                 className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm"
               >
                 <Save size={16} />
-                Save
+                {t('save')}
               </button>
             </>
           )}
@@ -246,7 +248,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
                 className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-md text-sm font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isGeneratingPDF ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                {isGeneratingPDF ? 'Generating PDF...' : 'Export'}
+                {isGeneratingPDF ? t('generatingPdf') : t('export')}
                 {!isGeneratingPDF && <ChevronDown size={14} className={`transition-transform ${showExportMenu ? 'rotate-180' : ''}`} />}
               </button>
 
@@ -262,14 +264,14 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
                     onClick={handleExportText}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-colors text-left"
                   >
-                    <FileText size={16} /> Plain Text (.txt)
+                    <FileText size={16} /> {t('plainText')}
                   </button>
                   <div className="h-px bg-slate-100 my-1"></div>
                   <button
                     onClick={handleExportPDF}
                     className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-colors text-left"
                   >
-                    <Printer size={16} /> Save as PDF
+                    <Printer size={16} /> {t('savePdf')}
                   </button>
                 </div>
               )}
@@ -296,7 +298,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ isAnalyzing, result, erro
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-4 print:hidden">
              <Loader2 size={40} className="animate-spin text-primary-500" />
-             <p>Initializing analysis...</p>
+             <p>{t('initAnalysis')}</p>
           </div>
         )}
       </div>
